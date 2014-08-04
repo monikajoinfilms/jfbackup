@@ -1,0 +1,12 @@
+<?php
+// Get the field info
+$info = field_info_field('field_portfolio_image');
+
+// Get a reference to the values
+$values = &$info['settings']['allowed_values'];
+
+// Manipulate the values in some way, e.g.
+$values['new_value'] = 2;
+
+// Save the field
+field_update_field($info);

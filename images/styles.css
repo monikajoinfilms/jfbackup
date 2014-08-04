@@ -1,0 +1,367 @@
+ body {
+	margin: 0;
+	padding: 0;
+ }
+ 
+ #background 
+{ 
+	 left: 0px; 
+	 top: 0px; 
+	 position: relative; 
+	 margin-left: auto; 
+	 margin-right: auto; 
+	 width: 2480px;
+	 height: 3538px; 
+	 overflow: hidden;
+	 z-index:0;
+	} 
+
+ #Layer0 
+{ 
+	 left: 0px; 
+	 top: 0px; 
+	 position: absolute; 
+	 width: 2480px;
+	 height: 3538px;
+	 z-index:1;
+} 
+
+ #Layer1 
+{ 
+	 left: 136px; 
+	 top: 173px; 
+	 position: absolute; 
+	 width: 2174px;
+	 height: 3171px;
+	 z-index:2;
+} 
+
+ #VectorSmartObject 
+{ 
+	 left: 503px; 
+	 top: 3080px; 
+	 position: absolute; 
+	 width: 1441px;
+	 height: 151px;
+	 z-index:3;
+} 
+
+ #Hopetohaveahappyasso 
+{ 
+	 left: 824px; 
+	 top: 3126px; 
+	 position: absolute; 
+	 width: 799px;
+	 height: 55px;
+	 z-index:4;
+} 
+
+ #Layer2 
+{ 
+	 left: 136px; 
+	 top: 300px; 
+	 position: absolute; 
+	 width: 2174px;
+	 height: 104px;
+	 z-index:5;
+} 
+
+ #VectorSmartObject_0 
+{ 
+	 left: 34px; 
+	 top: 300px; 
+	 position: absolute; 
+	 width: 102px;
+	 height: 172px;
+	 z-index:6;
+} 
+
+ #VectorSmartObjectcop 
+{ 
+	 left: 2310px; 
+	 top: 300px; 
+	 position: absolute; 
+	 width: 102px;
+	 height: 172px;
+	 z-index:7;
+} 
+
+ #FinalLogocopy 
+{ 
+	 left: 238px; 
+	 top: 247px; 
+	 position: absolute; 
+	 width: 346px;
+	 height: 197px;
+	 z-index:8;
+} 
+
+ #auditionsIAmstar 
+{ 
+	 left: 664px; 
+	 top: 328px; 
+	 position: absolute; 
+	 width: 1611px;
+	 height: 46px;
+	 z-index:9;
+} 
+
+ #VectorSmartObject_1 
+{ 
+	 left: 256px; 
+	 top: 597px; 
+	 position: absolute; 
+	 width: 1968px;
+	 height: 258px;
+	 z-index:10;
+} 
+
+ #Belowmentionedarethe 
+{ 
+	 left: 621px; 
+	 top: 750px; 
+	 position: absolute; 
+	 width: 1248px;
+	 height: 53px;
+	 z-index:11;
+} 
+
+ #IntroducingStarBankT 
+{ 
+	 left: 915px; 
+	 top: 509px; 
+	 position: absolute; 
+	 width: 658px;
+	 height: 54px;
+	 z-index:12;
+} 
+
+ #STARBANKhelpsfindpro 
+{ 
+	 left: 317px; 
+	 top: 634px; 
+	 position: absolute; 
+	 width: 1843px;
+	 height: 52px;
+	 z-index:13;
+} 
+
+ #VectorSmartObjectcop_0 
+{ 
+	 left: 256px; 
+	 top: 2409px; 
+	 position: absolute; 
+	 width: 1968px;
+	 height: 146px;
+	 z-index:14;
+} 
+
+ #WhatshouldJFexpectfr 
+{ 
+	 left: 854px; 
+	 top: 2456px; 
+	 position: absolute; 
+	 width: 770px;
+	 height: 52px;
+	 z-index:15;
+} 
+
+ #VectorSmartObject_2 
+{ 
+	 left: 253px; 
+	 top: 900px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:16;
+} 
+
+ #Guideyouinyourcareer 
+{ 
+	 left: 356px; 
+	 top: 903px; 
+	 position: absolute; 
+	 width: 1859px;
+	 height: 167px;
+	 z-index:17;
+} 
+
+ #VectorSmartObject_3 
+{ 
+	 left: 254px; 
+	 top: 1137px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:18;
+} 
+
+ #Willmakeeveryeffortt 
+{ 
+	 left: 358px; 
+	 top: 1146px; 
+	 position: absolute; 
+	 width: 1865px;
+	 height: 107px;
+	 z-index:19;
+} 
+
+ #VectorSmartObject_4 
+{ 
+	 left: 253px; 
+	 top: 1306px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:20;
+} 
+
+ #Negotiatecontractsfo 
+{ 
+	 left: 356px; 
+	 top: 1318px; 
+	 position: absolute; 
+	 width: 958px;
+	 height: 47px;
+	 z-index:21;
+} 
+
+ #VectorSmartObject_5 
+{ 
+	 left: 253px; 
+	 top: 1456px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:22;
+} 
+
+ #Helpsettledisputesbe 
+{ 
+	 left: 354px; 
+	 top: 1461px; 
+	 position: absolute; 
+	 width: 1002px;
+	 height: 47px;
+	 z-index:23;
+} 
+
+ #VectorSmartObject_6 
+{ 
+	 left: 253px; 
+	 top: 1597px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:24;
+} 
+
+ #TreatyoulikeaArespec 
+{ 
+	 left: 358px; 
+	 top: 1616px; 
+	 position: absolute; 
+	 width: 894px;
+	 height: 47px;
+	 z-index:25;
+} 
+
+ #VectorSmartObject_7 
+{ 
+	 left: 253px; 
+	 top: 1742px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:26;
+} 
+
+ #Youneednotbotheryour 
+{ 
+	 left: 356px; 
+	 top: 1742px; 
+	 position: absolute; 
+	 width: 1836px;
+	 height: 107px;
+	 z-index:27;
+} 
+
+ #VectorSmartObject_8 
+{ 
+	 left: 253px; 
+	 top: 1918px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:28;
+} 
+
+ #JFwillbecomeyourmana 
+{ 
+	 left: 353px; 
+	 top: 1917px; 
+	 position: absolute; 
+	 width: 1839px;
+	 height: 226px;
+	 z-index:29;
+} 
+
+ #VectorSmartObject_9 
+{ 
+	 left: 253px; 
+	 top: 2214px; 
+	 position: absolute; 
+	 width: 77px;
+	 height: 73px;
+	 z-index:30;
+} 
+
+ #Andallthishappenswit 
+{ 
+	 left: 360px; 
+	 top: 2214px; 
+	 position: absolute; 
+	 width: 1812px;
+	 height: 107px;
+	 z-index:31;
+} 
+
+ #VectorSmartObject_10 
+{ 
+	 left: 256px; 
+	 top: 2839px; 
+	 position: absolute; 
+	 width: 215px;
+	 height: 124px;
+	 z-index:32;
+} 
+
+ #20commissionongrosse 
+{ 
+	 left: 502px; 
+	 top: 2837px; 
+	 position: absolute; 
+	 width: 1436px;
+	 height: 47px;
+	 z-index:33;
+} 
+
+ #VectorSmartObject_11 
+{ 
+	 left: 256px; 
+	 top: 2656px; 
+	 position: absolute; 
+	 width: 215px;
+	 height: 124px;
+	 z-index:34;
+} 
+
+ #Commitmentandprofess 
+{ 
+	 left: 504px; 
+	 top: 2654px; 
+	 position: absolute; 
+	 width: 1710px;
+	 height: 107px;
+	 z-index:35;
+} 

@@ -1,0 +1,125 @@
+@charset "utf-8";
+/* CSS Document */
+
+/* added by Yogesh & Santos 17-4-14 for tip of the day*/
+#block-views-tip-of-the-day-block{
+	border:2px solid #d1d3d6;
+	background-color:#fff;
+	padding:3px;	
+	}
+#block-views-tip-of-the-day-block h2{
+	margin-bottom:10px !important;
+	border-bottom:1px solid #000;
+	}
+	
+/*
+	Author: Yogesh Kushwaha
+	Date:19/04/2014
+	Title: Style for astrologer image, horoscope and ad banner at home page
+*/
+#block-block-112{
+	background-color:#fff;
+	padding:7px;
+	width:230px;
+	float:left;
+	overflow:hidden;
+	}
+	
+#block-block-113{
+	padding:7px 0 7px 0;
+	background-color:#fff;
+	overflow:hidden;	
+	}
+
+#block-views-horoscope-block-1{
+	background-color:#fff;
+	padding:7px 0 7px 0;
+	float:left;
+	width:50%;
+	height:208px;	
+	}
+.content .view-horoscope .view-content .views-view-grid tr.row-2 td.col-1 .views-field-field-sunsign-image .field-content a img,
+.content .view-horoscope .view-content .views-view-grid tr.row-2 td.col-2 .views-field-field-sunsign-image .field-content a img,
+.content .view-horoscope .view-content .views-view-grid tr.row-2 td.col-3 .views-field-field-sunsign-image .field-content a img,
+.content .view-horoscope .view-content .views-view-grid tr.row-2 td.col-4 .views-field-field-sunsign-image .field-content a img,
+.content .view-horoscope .view-content .views-view-grid tr.row-2 td.col-5 .views-field-field-sunsign-image .field-content a img,
+.content .view-horoscope .view-content .views-view-grid tr.row-2 td.col-6 .views-field-field-sunsign-image .field-content a img
+	{
+	padding:7px 7px 0 0;
+	}
+	
+.view-i-am .view-content .quicktabs-wrapper .quicktabs-style-mac .item-list .quicktabs-tabs li a{
+	width:70.em;
+	text-wrap:suppress;
+	color:red !important;
+	}
+#smsAlertButton{float:left;}
+
+/*
+  Author: Yogesh Kushwaha
+  Date: 27 May 2014
+  Title: image zoom effect for movie bank thumbnail image
+*/
+
+.thumb-pic{
+  border: 5px solid #fff;  
+  height: 150px;
+  width: 150px;
+  overflow: hidden;
+  -webkit-box-shadow: 5px 5px 5px #111;
+  box-shadow: 5px 5px 5px #111;  
+	
+	}
+
+.movie-bank-thumb-image img:hover{
+	height:150px;
+	width:150px;
+	}
+
+.movie-bank-thumb-image img{
+	height: 200px;
+    width: 200px;
+   -webkit-transition: all 1s ease;
+   -moz-transition: all 1s ease;
+   -o-transition: all 1s ease;
+   -ms-transition: all 1s ease;
+   transition: all 1s ease;
+   }
+ 
+ /* News Home Block Gallery */
+ 
+#block-views-news-home-block-block{
+	width:40%;
+	float:left;
+	height:250px;
+	overflow:hidden;
+	background-color:#fff;
+	}
+   
+/*Audition page hide geolocation santosh 31-05-2014*/
+#edit-field-location-address{ display: none;}
+.contentbody{
+ width: 630px;
+   font-size: 16px;
+}
+
+
+.view-all-video .view-content table.views-view-grid {clear:left !important;}
+
+/*     Author Preety
+
+*/
+
+////////////// html .tpl css ////////////
+
+
+
+
+
+
+
+
+
+
+
+

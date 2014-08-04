@@ -1,0 +1,95 @@
+<?php
+/**
+
+*************************************************************************************
+ Please Do not edit or add any code in this file without permission of bluezeal.in.
+@Developed by bluezeal.in
+
+Drupal: 7.1.5						   CCAvenue Version: 1.312
+
+
+		
+                            
+Module Version. bz-2.1                 Module release: February 23/2013
+**************************************************************************************
+*/
+
+/**
+ 
+ 
+
+
+function uc_ccavenue_schema() {
+  $schema = array();
+
+  $schema['uc_payment_ccavenue'] = array(
+    'description' => t('Logs CCAvenue Payment Details.'),
+    'fields' => array(
+      'order_id' => array(
+        'description' => t('The order ID.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'checksum' => array(
+        'description' => t('The checksum generated for transaction verification'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'amount' => array(
+        'description' => t('The payment amount from CCAvenue.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'status' => array(
+        'description' => t('The IPN status from CCAvenue.'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+     
+      'authdesc' => array(
+        'description' => t('Indicates the status of the transaction'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'received' => array(
+        'description' => t('The CCAvenue receipt timestamp.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'order_id' => array('order_id'),
+    ),
+  );
+
+  return $schema;
+}
+
+
+function uc_ccavenue_install() {
+  drupal_install_schema('uc_payment_ccavenue');
+
+  $t = get_t();
+  db_query("INSERT INTO {uc_order_statuses} (order_status_id, title, state, weight, locked) VALUES ('ccavenue_pending', '". $t('CCAvenue pending') ."', 'payment_received', 7, 1);");
+}
+
+
+function uc_ccavenue_uninstall() {
+  drupal_uninstall_schema('uc_payment_ccavenue');
+  db_query("DELETE FROM {variable} WHERE name LIKE 'uc_payment_ccavenue_%%'");
+}
+
+
+

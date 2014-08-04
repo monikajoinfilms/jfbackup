@@ -1,0 +1,344 @@
+<?php 
+
+/**
+ * @file
+ * Adds support for sending SMS messages using the any  gateway.
+ *
+ * Thanks to diggersf for his great work on the original module.
+ *
+ * Applying a sender will only work with Approved Sender IDs in your Clickatell
+ *
+ * hook_node_presave
+ */
+function sendsms_node_update($node) {
+
+  if ($node->type == 'audition') {
+    // Act on the unpublishing of an article.
+   if (isset($node->original->status) && $node->original->status == 0 && $node->status == 1){
+          sendsms_node_insert11($node);
+  }
+    // Act on the publishing of an article.
+   
+  }
+}
+ 
+function sendsms_node_insert11($node) {
+global $user;$count=0;
+	$no = 0;
+ if($node->type == "audition"){
+			
+	$result_aud_ffa = db_select('field_data_field_from_age', 'ffa')
+    ->fields('ffa')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	$result_aud_fta = db_select('field_data_field_to_age', 'fta')
+    ->fields('fta')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+
+   $result_aud_fcp = db_select('field_data_field_contact_phone', 'fcp')
+    ->fields('fcp')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	$result_aud_fe = db_select('field_data_field_email', 'fe')
+    ->fields('fe')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	
+	$result_aud_fact = db_select('field_data_field_audition_category_term', 'fact')
+    ->fields('fact')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	
+	$result_aud_fgp = db_select('field_data_field_gender_profile', 'fgp')
+    ->fields('fgp')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	////////////////////////// Audition date
+	$result_aud_fad = db_select('field_data_field_audition_date', 'fad')
+    ->fields('fad')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	////////////////////// Audtion Vanue 
+	$result_aud_fav = db_select('field_data_field_audition_venue', 'fav')
+    ->fields('fav')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	
+	$result_aud_fma = db_select('field_data_field_medium_audition', 'fma')
+    ->fields('fma')
+    ->condition('entity_id', $node->nid,'=')
+    ->condition('bundle','audition')
+    ->execute()
+    ->fetchAssoc();
+	
+
+	$count_fma = count($result_aud_fma);
+	
+
+			if($count_fma != 0){
+					$result_txd1 = db_select('taxonomy_term_data', 'txd')
+					->fields('txd')
+					->condition('tid', $result_aud_fma['field_medium_audition_tid'],'=')
+					->execute()
+					->fetchAssoc();
+					
+			  }
+	///////////////////////////// users and audition categries 
+	
+	
+			if($result_aud_fact['field_audition_category_term_tid'] != "") 
+			{  
+					$result_txd = db_select('taxonomy_term_data', 'txd')
+					->fields('txd')
+					->condition('tid', $result_aud_fact['field_audition_category_term_tid'],'=')
+					->condition('vid','7')
+					->execute()
+					->fetchAssoc();  
+					////////////// all sms user uid 
+					$result_smsusers = db_select('users_roles', 'smsusers')
+					->fields('smsusers')
+					->condition('rid', '20')			
+					->execute()
+					->fetchAll();
+					
+					
+					
+				if(count($result_smsusers) != 0 )
+						{
+							foreach( $result_smsusers as $record_smsusers)
+							{
+								//////////////////// users  profession for sms suer
+							
+								$result_users_fmp = db_select('field_data_field_my_profession', 'fmp')
+									->fields('fmp')
+									->condition('entity_id', $record_smsusers->uid,'=')
+									->condition('field_my_profession_tid',$result_aud_fact['field_audition_category_term_tid'],'=')
+									->execute()
+									->fetchAssoc();
+								///////////age limt 
+						
+								if(count($result_users_fmp) != 0 )
+								{
+									$data['uid'][] = $result_users_fmp['entity_id'];
+									if($result_aud_ffa['field_from_age_value'] == "" && $result_aud_fta['field_to_age_value'] == "")
+									{
+										$result_users_age = db_select('field_data_field_age', 'age')
+									->fields('age')
+									->condition('entity_id', $result_users_fmp['entity_id'],'=')
+									->execute()
+									->fetchAssoc();
+									}else
+									{
+										$result_users_age = db_select('field_data_field_age', 'age')
+									->fields('age')
+									->condition('entity_id', $result_users_fmp['entity_id'],'=')
+									->condition('field_age_value',$result_aud_ffa['field_from_age_value'],'>=')
+									->condition('field_age_value',$result_aud_fta['field_to_age_value'],'<=')
+									->execute()
+									->fetchAssoc();
+									
+									}
+								}////////////////////// find gender 
+								if(count($result_aud_fgp) == 1 )
+								{
+									
+									$result_users_gender = db_select('field_data_field_2gender', 'gender')
+									->fields('gender')
+									->condition('entity_id', $result_users_fmp['entity_id'],'=')
+									->condition('field_2gender_value',$result_aud_fgp['field_gender_profile_value'],'=')
+									->execute()
+									->fetchAssoc();
+								}else{
+									
+									$result_users_gender = db_select('field_data_field_2gender', 'gender')
+									->fields('gender')
+									->condition('entity_id', $result_users_fmp['entity_id'],'=')
+									->execute()
+									->fetchAssoc();
+									
+								}
+								
+								///contactno 
+								if(count($result_users_gender) != 1 )
+								{
+									$result_users_contactuser = db_select('field_data_field_landline_phone', 'contactuser')
+									->fields('contactuser')
+									->condition('entity_id', $result_users_fmp['entity_id'],'=')
+									->execute()
+									->fetchAssoc();
+									    if($result_users_contactuser['field_landline_phone_value'] != "")
+											{
+												$numbares = str_ireplace("&",",",$result_users_contactuser['field_landline_phone_value']);
+												$numbares = explode(',',$numbares);
+												$data['contact_no'][] = $numbares[0];
+											}
+									
+								}else{
+									
+									$err= "There is no recored found";
+									
+								}
+							}
+						
+						
+						
+						}
+
+					
+					
+					
+			}
+			
+			////////////////set varible value
+			if($result_aud_fe['field_email_email'] != "")
+			{
+				$email =" email:".$result_aud_fe['field_email_email'];
+			}
+			else
+			{
+				$email = "";		
+			}
+			if($result_aud_fav['field_audition_venue_value'] != "")
+			{
+				$vanue =" at ".$result_aud_fav['field_audition_venue_value'];
+			}
+			else
+			{
+				$vanue ="";
+			}
+			if($result_aud_fcp['field_contact_phone_value'] != "")
+			{
+				$contact =" ".$result_aud_fcp['field_contact_phone_value'];
+			}
+			else
+			{
+				$contact =" ";
+			}
+			
+			if($result_aud_fgp['field_gender_profile_value'] != "")
+			{
+				if(count($result_aud_fgp) ==2)
+				{
+					$bout_gender="Male and Female";
+					$gender =" for ".$bout_gender;
+					}
+				else 
+				{
+					$gender =" for ".$result_aud_fgp['field_gender_profile_value'];
+				}
+			}
+			else
+			{
+			$gender ="";
+			}
+	
+			if($result_txd['name'] != "")
+			{
+				$data['category'] = $result_txd['name'];
+				$category =" for ".$result_txd['name'];
+				}
+			else
+			{
+				$category ="";
+			}
+			
+				///////create personalized message	
+			$msg = $node->title." ".$category." ".$gender." ,".$result_txd1['name']." , ".date("d-m-y",strtotime($result_aud_fad['field_audition_date_value']))." - ".date("d-m-y",strtotime($result_aud_fad['field_audition_date_value2'])).$email." ". $vanue ." ".$contact;
+			$data['message'] = $msg; 
+			$count++;
+			//$data['contact_no'][] = $contact.",9826416953";
+			$inc = sizeof($data['contact_no']) - 1;
+			print_r($data['contact_no']);
+			
+			//call function to insert user regards sms report
+		 for($inc; $inc>=0;--$inc)
+		{                     
+                        
+           	//Your authentication key
+		$authKey = "49838ACx18W4vF71m538087d3";
+		
+		//Multiple mobiles numbers seperated by comma
+		//$mobileNumber = $arr1[$inc];
+		$mobileNumber = $data['contact_no'][$inc];
+		//Sender ID,While using route4 sender id should be 6 characters long.
+		$senderId = "jFilms";
+		
+		//Your message to send, Add URL endcoding here.
+		$message = $msg;
+		
+		//Define route 
+		$route = "4";
+		//Prepare you post parameters
+		$postData = array(
+			'authkey' => $authKey,
+			'mobiles' => $mobileNumber,
+			'message' => $message,
+			'sender' => $senderId,
+			'route' => $route
+		);
+		
+		//API URL
+		$url="http://www.xtechcellular.com/sendhttp.php";
+		
+		// init the resource
+		$ch = curl_init();
+		curl_setopt_array($ch, array(
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => $postData
+			//,CURLOPT_FOLLOWLOCATION => true
+		));
+		
+		//get response
+		$output = curl_exec($ch);
+		
+		curl_close($ch);
+
+		//call function to insert user regards sms report
+		$sendData['uid'] = $data['uid'][$inc];
+		$sendData['mobileNo'] = $data['contact_no'][$inc];
+		$sendData['category'] = $data['category'];
+		$sendData['message'] = $data['message']; 
+	
+		add_user_confirm($sendData);
+		
+		
+	}
+			
+	}
+	
+}
+function add_user_confirm($data)
+{
+	 
+	
+		db_insert('audition_sms_report')->fields(array(
+			'uid' => $data['uid'],
+			'contact_no' => $data['mobileNo'], 
+			'category' => $data['category'], 
+			'message' => $data['message'],
+			'status'=>'1',
+		  ))->execute();
+	
+	
+}
+
+?>

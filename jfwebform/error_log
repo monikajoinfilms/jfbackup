@@ -1,0 +1,2 @@
+[22-May-2014 04:42:05 America/New_York] PHP Warning:  mysql_num_rows() expects parameter 1 to be resource, boolean given in /home/joinfilm/public_html/core-file/confirm_order.php on line 15
+[22-May-2014 04:42:05 America/New_York] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/joinfilm/public_html/core-file/confirm_order.php:15) in /home/joinfilm/public_html/core-file/confirm_order.php on line 231

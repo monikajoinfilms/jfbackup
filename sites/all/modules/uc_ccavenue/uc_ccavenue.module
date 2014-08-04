@@ -1,0 +1,314 @@
+<?php
+/**
+
+*************************************************************************************
+ Please Do not edit or add any code in this file without permission of bluezeal.in.
+@Developed by bluezeal.in
+
+Drupal: 7.1.5						   CCAvenue Version: 1.312			
+
+                              
+Module Version. bz-2.1                 Module release: February 23/2013
+**************************************************************************************
+*/
+require("libs/libfuncs.php3");
+/*Payment Name:  CCAvenuepay
+Description: Extends Payment with  ccavenuepay.
+Drupal version 7.1.5
+CCAvenue Version 1.3
+Author: 
+Copyright: © 2012-2013 */
+/**
+ * @file
+ * Integrates various Ccavenue payment services and Instant Payment Notifications
+ * (IPN) with Ubercart!
+ *
+ * You should turn on IPN Notifications in your Ccavenue profile but leave the
+ * IPN URL blank.  This allows the module to specify an IPN URL when it directs
+ * payments through Ccavenue that includes the order ID for debugging purposes.
+ *
+ * If you have not yet signed up for your Ccavenue account, please support
+ * Ubercart by using the following link.  Thank you!
+ *
+ * https://www.ccavenue.com/shopzone/cc_details.jsp
+ */
+
+function uc_ccavenue_menu() {
+ 
+  $items['ccavenue/uc_ccavenue/redirect/%uc_order'] = array(
+    'title' => 'CCAvenue Redirect',	
+    'page callback' => 'uc_ccavenue_redirect',
+	'page arguments' => array(2),
+	'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ccavenue.pages.inc',
+  ); 
+  
+  $items['uc_ccavenue/complete'] = array(
+    'title' => 'CCAvenue payment complete',
+    'page callback' => 'uc_ccavenue_complete',
+	'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ccavenue.pages.inc',
+  ); 
+  $items['uc_ccavenue/cancel'] = array(
+    'title' => 'CCAvenue payment cancelled',
+    'page callback' => 'uc_ccavenue_cancel',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_ccavenue.pages.inc',
+  );  
+  return $items;  
+}
+function uc_ccavenue_redirect_access() {
+  return TRUE;
+}
+function uc_ccavenue_perm() {
+  return array('administer ccavenue');
+}
+function uc_ccavenue_init() {
+  global $conf;
+  $conf['i18n_variables'][] = 'uc_ccavenue_checkout_button';
+  
+}
+function uc_ccavenue_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form_id) 
+{
+  if (variable_get('uc_payment_method_ccavenue_checkout', TRUE))
+  {
+    $form['#submit'][] = 'uc_ccavenue_checkout';
+	
+  } 
+ 
+}
+
+function uc_ccavenue_uc_payment_gateway() {
+  if (!module_exists('uc_credit')) {
+    drupal_set_message(t('You must <a href="@modules">enable the Credit Card module</a> to use Ccavenue Website Payments Pro.', array('@modules' => url('admin/modules', array('fragment' => 'edit-modules-ubercart-payment')))), 'warning');
+    return;
+  }
+  $gateways['ccavenue'] = array(
+	
+    'title' => t('Ccavenue'),
+    'description' => t('Ccavenue Process payments using Website Payments .'),
+    'settings' => 'uc_ccavenue_settings_form',
+    
+  );
+
+ return $gateways;
+ 
+}
+
+function uc_ccavenue_uc_payment_method() {
+	  
+	$title1 = t('CCAvenue') .' <br /> ' . theme('image', array(
+      'path' => drupal_get_path('module', 'uc_ccavenue') . '/images/ccavenue_logo.gif',
+      'attributes' => array('align' => 'left'),
+    )).' <br />';
+	$methods[] = array(
+    'id' => 'ccavenue',
+    'name' => t('Ccavenue Website Payments Standard'),
+	'title' => $title1 ,
+    'review' => t('CCAvenue'),
+    'desc' => t('Redirect users to submit payments through Ccavenue.'),
+    'callback' => 'uc_payment_method_ccavenue',
+    'redirect' => 'uc_ccavenue_form',
+    'weight' => 1,
+    'checkout' => TRUE,
+    'no_gateway' => TRUE,
+  );
+  return $methods;
+ 
+}
+function uc_payment_method_ccavenue($op, &$arg1) {
+  switch ($op) {
+    case 'order-view':
+      $Checksum = db_result(db_query("SELECT checksum FROM {uc_ccavenue} WHERE order_id = %d ORDER BY received ASC", $arg1->order_id));
+      if (empty($Checksum)) {
+        $Checksum = t('Unknown');
+      }
+      return t('Checksum :<br />@Checksum', array('@Checksum' => $Checksum));
+
+    case 'settings':
+		$form['uc_ccavenue_image'] = array(
+		'#type' => 'image_button',
+		'#button_type' => 'checkout',
+		'#src' => 'https://www.bluezeal.in/security/logo.png',
+		);
+		
+      $form['uc_ccavenue_merchant_id'] = array(
+        '#type' => 'textfield',
+        '#title' => t('MerchantID'),
+        '#description' => t('This is (also User Id)  available at "Generate Working Key" of "Settings & Options" section of your CCAvenue Account.'),
+        '#default_value' => variable_get('uc_ccavenue_merchant_id', ''),
+      );
+      
+      $form['uc_ccavenue_working_key'] = array(
+        '#type' => 'textfield',
+        '#title' => t('WorkingKey'),
+        '#description' => t('The 32 bit alphanumeric key in the textbox provided here. Please note that get this key, login to your CCAvenue merchant account and visit the "Generate Working Key" section at the "Settings & Options" page. '),
+        '#default_value' => variable_get('uc_ccavenue_working_key', ''),
+      );
+      
+      $form['uc_ccavenue_server'] = array(
+        '#type' => 'select',
+        '#title' => t('CCAvenue server'),
+        '#description' => t('The Available list of CCAvenue Servers'),
+        '#options' => array(
+          'https://www.ccavenue.com/shopzone/cc_details.jsp' => ('Live'),
+        ),
+        '#default_value' => variable_get('uc_ccavenue_server', 'https://www.ccavenue.com/shopzone/cc_details.jsp'),
+      );
+      
+      $form['uc_ccavenue_checkout_button'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Order review submit button text'),
+        '#description' => t('Provide CCAvenue specific text for the submit button on the order review page.'),
+        '#default_value' => variable_get('uc_ccavenue_checkout_button', t('Submit Order')),
+      );
+      
+      $form['uc_ccavenue_debug'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show debug info in the logs for Transactions'),
+        '#default_value' => variable_get('uc_ccavenue_debug', FALSE),
+      );
+
+      $form['uc_ccavenue_test_configuration'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Run CCAvenue in Test Configuration'),
+        '#description' => t('When enabled will automatically Send SUB-MERCHANT TEST to CCAvenue Gateway and will set the total value of products to 1'),
+        '#default_value' => variable_get('uc_ccavenue_test_configuration', FALSE),
+      );
+      
+      return $form;
+  }
+}
+
+function uc_ccavenue_form($form, &$form_state, $order) {
+
+  $address = variable_get('uc_ccavenue_address_selection', 'billing');
+  $country = uc_get_country_data(array('country_id' => $order->{$address . '_country'}));
+  if ($country === FALSE) {
+    $country = array(0 => array('country_iso_code_2' => 'US'));
+  }
+
+  $phone = '';
+  for ($i = 0; $i < strlen($order->{$address . '_phone'}); $i++) {
+    if (is_numeric($order->{$address . '_phone'}[$i])) {
+      $phone .= $order->{$address . '_phone'}[$i];
+    }
+  }
+  
+	$MerchantId   = variable_get('uc_ccavenue_merchant_id', '') ;
+	$Redirect_URL = URL('ccavenue/uc_ccavenue/redirect/'. $order->order_id, array('absolute' => TRUE));
+	$WorkingKey   = variable_get('uc_ccavenue_working_key', '');
+	$Amount       = $order->order_total;
+	$OrderId      = $order->order_id;
+	$Checksum     = getCheckSum($MerchantId,$Amount,$OrderId ,$Redirect_URL,$WorkingKey);	 
+	$data = array();
+		$data['Redirect_Url']			= $Redirect_URL ;
+		$data['Merchant_Id'] 			= $MerchantId;
+		$data['Amount']					= $Amount; 
+		$data['Order_Id'] 				= $OrderId;
+		$data['Checksum']				= $Checksum;
+		$data['billing_cust_name']		= substr($order->billing_first_name . ' ' . $order->billing_last_name, 0, 32);
+		$data['billing_cust_address'] 	= substr($order->{$address . '_street1'}, 0, 100);
+		$data['billing_cust_city'] 		= substr($order->{$address . '_city'}, 0, 40);
+		$data['billing_cust_state'] 	= uc_get_zone_code($order->{$address . '_zone'});
+		$data['billing_cust_country']  	=  $country[0]['country_iso_code_2'];
+		$data['billing_zip_code'] 		= $order->{$address . '_postal_code'};
+		$data['billing_cust_tel']  		= $order->billing_phone;
+		$data['billing_cust_email'] 	= $order->primary_email;
+		$data['Merchant_Param']			= $OrderId ;
+		$data['billing_cust_notes']		='';
+	if($data != array())
+		{
+			$data['delivery_cust_name'] 	='';
+			$data['delivery_cust_address'] 	='';
+			$data['delivery_cust_city'] 	='';
+			$data['delivery_cust_state'] 	='';
+			$data['delivery_cust_country']	='';
+			$data['delivery_cust_tel']		='';
+			$data['delivery_zip_code'] 		='';
+		}
+		else
+		{
+			$data['delivery_cust_name'] 	= substr($order->delivery_first_name . ' ' . $order->delivery_last_name, 0, 32);
+			$data['delivery_cust_address'] 	= substr($order->{$address . '_street2'}, 0, 100);
+			$data['delivery_cust_city'] 	= substr($order->{$address . '_city'}, 0, 40);
+			$data['delivery_cust_state'] 	= uc_get_zone_code($order->{$address . '_zone'});
+			$data['delivery_cust_country']	= $country[0]['country_iso_code_2'];
+			$data['delivery_cust_tel']		= $order->delivery_phone;
+			$data['delivery_zip_code'] 		= $order->{$address . '_postal_code'};
+		}
+	
+	$form['#action'] = variable_get('uc_ccavenue_server', 'https://www.ccavenue.com/shopzone/cc_details.jsp');
+	foreach ($data as $name => $value) {
+		if (!empty($value)) {
+		  $form[$name] = array( '#type' => 'hidden', '#value' => $value);
+		}
+	}
+	$form['actions'] = array('#type' => 'actions');
+	$form['actions']['submit'] = array('#type' => 'submit',
+								'#value' => variable_get('uc_ccavenue_checkout_button', t('Submit Order')),
+								);
+	
+  return $form;
+   
+}
+
+
+function uc_ccavenue_checkout($form, &$form_state) 
+{
+if ($form_state['values']['panes']['payment']['payment_method'] != 'ccavenue_ec') {
+    return;
+  }
+	$OrderId = intval($_SESSION['cart_order']);
+	$order = uc_order_load($OrderId);
+  if ($order === FALSE || uc_order_status_data($order->order_status, 'state') != 'in_checkout') {
+    $_SESSION['cart_order'] = NULL;
+    unset($_SESSION['cart_order']);
+    drupal_goto('cart');
+  }
+
+	$country = uc_get_country_data(array('country_id' => $order->billing_country));
+  if ($country === FALSE) {
+    $country = array(0 => array('country_iso_code_2' => 'US'));
+  }
+	$form = array(
+		'Redirect_Url' 		=> $Redirect_URL ,
+		'Merchant_Id' 		=> $MerchantId,
+		'Amount' 		=> $Amount, 
+		'Order_Id' 		=> $OrderId,
+		'Checksum' 		=> $Checksum,
+		'billing_cust_name'	=> substr($order->billing_first_name . ' ' . $order->billing_last_name, 0, 32),
+		'billing_cust_address' 	=> substr($order->{$address . '_street1'}, 0, 100),
+		'billing_cust_state' 	=> uc_get_zone_code($order->{$address . '_zone'}),
+		'billing_cust_country'  => $country[0]['country_iso_code_2'],
+		'billing_zip'		=> $order->{$address . '_postal_code'}, 
+		'billing_cust_tel'  	=> $order->billing_phone,
+		'billing_cust_email' 	=> $order->primary_email,
+		'delivery_cust_name' 	=> substr($order->delivery_first_name . ' ' . $order->delivery_last_name, 0, 32),
+		'delivery_cust_address' => substr($order->{$address . '_street2'}, 0, 100),
+		'delivery_cust_state' 	=> uc_get_zone_code($order->{$address . '_zone'}),
+		'delivery_cust_country' => $country[0]['country_iso_code_2'],
+		'delivery_cust_tel' 	=> $order->delivery_phone,
+		'Merchant_Param' 	=> $OrderId ,
+		'billing_cust_city' 	=> substr($order->{$address . '_city'}, 0, 40),
+		'billing_zip_code' 	=> $order->{$address . '_postal_code'},
+		'delivery_cust_city' 	=> substr($order->{$address . '_city'}, 0, 40),
+		'delivery_zip_code' 	=> $order->{$address . '_postal_code'},
+		'billing_cust_notes' 	=>'', 
+	);
+	 $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => variable_get('uc_ccavenue_checkout_button', t('Submit Order')),
+  );
+ 
+return $form;
+}
+	
+	
+	
+	
+	

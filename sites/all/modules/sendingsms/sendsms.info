@@ -1,0 +1,10 @@
+name = "sendsms"
+description = "Allows the SMS Framework to use Any a gateway."
+package = SMS Framework
+core = 7.x
+
+; Information added by drupal.org packaging script on 2013-10-01
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "sendsms"
+datestamp = "1405687398"

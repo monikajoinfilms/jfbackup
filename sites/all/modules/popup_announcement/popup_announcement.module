@@ -1,0 +1,283 @@
+<?php
+/**
+ * @file
+ * Primarily Drupal hooks and custom functions for creating
+ * block with pop-up announcement.
+ */
+
+/**
+ * @author
+ * Sergey Serov
+ * April, 2013
+ * sergey-serov.ru
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function popup_announcement_block_info() {
+  $blocks['popup_announcement'] = array(
+    'info' => t('Pop-up announcement'),
+    'status' => TRUE,
+    'region' => 'content',
+    'weight' => 0,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages' => '<front>',
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function popup_announcement_block_configure($delta) {
+  switch ($delta) {
+    case 'popup_announcement':
+      $form['popup_announcement_number_visit'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Number of visits when announcement will appear'),
+        '#description' => t('Only numbers separate by commas. Be aware: the pop-up appears at every visit if this field is empty. Default: 1,2,5'),
+        '#default_value' => variable_get('popup_announcement_number_visit'),
+      );
+      $form['popup_announcement_text'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Announcement text'),
+        '#description' => t('You may use html here if necessary.'),
+        '#default_value' => variable_get('popup_announcement_text'),
+      );
+      $form['popup_announcement_width'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Announcement width'),
+        '#description' => t('In pixels. Just number. Default: 500.'),
+        '#default_value' => variable_get('popup_announcement_width', 500),
+      );
+      $form['popup_announcement_height'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Announcement height'),
+        '#description' => t('In pixels too. Just number. Default: 300.'),
+        '#default_value' => variable_get('popup_announcement_height', 300),
+      );
+      break;
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function popup_announcement_block_save($delta = '', $edit = array()) {
+  switch ($delta) {
+    case 'popup_announcement':
+      variable_set('popup_announcement_number_visit', (string) $edit['popup_announcement_number_visit']);
+      variable_set('popup_announcement_text', (string) $edit['popup_announcement_text']);
+      variable_set('popup_announcement_width', (int) $edit['popup_announcement_width']);
+      variable_set('popup_announcement_height', (int) $edit['popup_announcement_height']);
+      break;
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function popup_announcement_block_view($delta) {
+  switch ($delta) {
+    case 'popup_announcement':
+      $block['subject'] = '';
+      $block['content'] = popup_announcement_create_block();
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Create block.
+ *
+ * @return string
+ *   html
+ */
+function popup_announcement_create_block() {
+
+  $announcement = '';
+  $sid = popup_announcement_get_sid();
+  $when_visible = popup_announcement_when_visible();
+
+  if (popup_announcement_get_visit_number($sid)) {
+    popup_announcement_update_visitor_info($sid);
+  }
+  else {
+    popup_announcement_create_visitor_info($sid);
+  }
+
+  $visit_number = popup_announcement_get_visit_number($sid);
+
+  if (($when_visible === TRUE || in_array($visit_number, $when_visible))
+    && popup_announcement_is_visible($sid) == 1 && popup_announcement_is_visible_permanent($sid) == 1) {
+
+    $announcement = theme('popup_announcement', array('announcement_text' => variable_get('popup_announcement_text')));
+
+    drupal_add_js(drupal_get_path('module', 'popup_announcement') . '/popup_announcement.js');
+    drupal_add_css(drupal_get_path('module', 'popup_announcement') . '/popup_announcement.css');
+
+    $settings_for_js = array(
+      'width' => variable_get('popup_announcement_width'),
+      'height' => variable_get('popup_announcement_height'),
+    );
+    drupal_add_js(array('popup_announcement' => $settings_for_js), 'setting');
+
+    $q = db_update('popup_announcement')
+      ->fields(array('is_visible' => 0))
+      ->condition('sid', $sid)
+      ->execute();
+  }
+
+  return $announcement;
+}
+
+/**
+ * Get visitor sid. We use the API from custom module session_api.
+ *
+ * @return string
+ *   visitor session id
+ */
+function popup_announcement_get_sid() {
+  global $user;
+  return (user_is_logged_in()) ? $user->sid : session_api_get_sid();
+}
+
+/**
+ * Get visit number for this visitor.
+ *
+ * @param string $sid
+ *   visitor session id
+ *
+ * @return numeric
+ *   Visit number for this visitor
+ *   If returned FALSE - this visitor first time here
+ *   or was last time more than cron period
+ */
+function popup_announcement_get_visit_number($sid) {
+  return db_select('popup_announcement', 'a')
+    ->condition('sid', $sid)
+    ->fields('a', array('visit_number'))
+    ->execute()
+    ->fetchField();
+}
+
+/**
+ * Check if announcement is vsible for this visit.
+ *
+ * @param string $sid
+ *   visitor session id
+ *
+ * @return numeric
+ *   1 -  if for this visitor announcement can be created
+ *   0 - if not, for example because he made some action
+ *   from thise announcement yet
+ */
+function popup_announcement_is_visible($sid) {
+  return db_select('popup_announcement', 'a')
+    ->condition('sid', $sid)
+    ->fields('a', array('is_visible'))
+    ->execute()
+    ->fetchField();
+}
+
+/**
+ * Check if announcement is visible for this visitor.
+ *
+ * @param string $sid
+ *   visitor session id
+ *
+ * @return numeric
+ *   1 -  if for this visitor announcement can be created
+ *   0 - if not, for example because he made some action
+ *   from thise announcement yet
+ */
+function popup_announcement_is_visible_permanent($sid) {
+  return db_select('popup_announcement', 'a')
+    ->condition('sid', $sid)
+    ->fields('a', array('is_visible_permanent'))
+    ->execute()
+    ->fetchField();
+}
+
+/**
+ * Get list with visit numbers, when announcement must be visible.
+ *
+ * @return array
+ *   Array or boolean - list whith visit numbers or TRUE if announcement 
+ *   must be appears at every visit
+ */
+function popup_announcement_when_visible() {
+  $when_visible = variable_get('popup_announcement_number_visit');
+  return (empty($when_visible)) ? TRUE : explode(',', $when_visible);
+}
+
+/**
+ * Create record for new visitor.
+ *
+ * @param string $sid
+ *   visitor session id
+ */
+function popup_announcement_create_visitor_info($sid) {
+  $q = db_insert('popup_announcement')
+    ->fields(array(
+      'sid' => $sid,
+      'visit_number' => 1,
+      'is_visible' => 1,
+      'is_visible_permanent' => 1,
+      'timestamp_first_visit' => REQUEST_TIME,
+      'timestamp_last_visit' => REQUEST_TIME,
+  ))
+  ->execute();
+}
+
+/**
+ * Update visitor info.
+ * 
+ * Increment visit number and update visit time.
+ *
+ * @param string $sid
+ *   visitor session id
+ */
+function popup_announcement_update_visitor_info($sid) {
+  $last_request = db_select('popup_announcement', 'a')
+    ->condition('sid', $sid)
+    ->fields('a', array('timestamp_last_visit'))
+    ->execute()
+    ->fetchField();
+
+  // If more then one our - so, lets think it is new visit.
+  if ($last_request < REQUEST_TIME - 60 * 60) {
+    $q = db_update('popup_announcement')
+      ->expression('visit_number', 'visit_number + :increment', array(':increment' => 1))
+      ->fields(array('is_visible' => 1))
+      ->condition('sid', $sid)
+      ->execute();
+  }
+
+  $q = db_update('popup_announcement')
+    ->fields(array('timestamp_last_visit' => REQUEST_TIME))
+    ->condition('sid', $sid)
+    ->execute();
+}
+
+/**
+ * Implements hook_cron().
+ */
+function popup_announcement_cron() {
+  db_delete('popup_announcement')->condition('timestamp_first_visit', REQUEST_TIME - 60 * 60 * 24 * 90, '<')->execute();
+}
+
+/**
+ * Implements hook_theme().
+ */
+function popup_announcement_theme() {
+  return array(
+    'popup_announcement' => array(
+      'template' => 'popup-announcement',
+      'arguments' => array('announcement_text' => NULL)),
+  );
+}
